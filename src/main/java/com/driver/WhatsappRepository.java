@@ -135,35 +135,39 @@ public class WhatsappRepository {
         //If user is not the admin, remove the user from the group, remove all its messages from all the databases, and update relevant attributes accordingly.
         //If user is removed successfully, return (the updated number of users in the group + the updated number of messages in group + the updated number of overall messages)
         int ans = 0;
-        
         boolean isPresent = false;
-        for(Group group:groupUserMap.keySet()){
-            if(groupUserMap.get(group).contains(user)){
+        Group groupForUser = null;
+        
+        for(Group group: groupUserMap.keySet()){
+            List<User> users = groupUserMap.get(group);
+            if(users.contains(user)){
                 isPresent = true;
+                groupForUser = group;
                 if(adminMap.get(group).equals(user)){
                     throw new Exception("Cannot remove admin");
                 }
                 else{
-                    for(Message message:senderMap.keySet()){
-                        if(senderMap.get(message).equals(user)){
-                            if(groupMessageMap.get(group).contains(message)){
-                                groupMessageMap.get(group).remove(message);
-                            }
-                            senderMap.remove(message);
-                        }
-                    }
+                    users.remove(user);
+                    ans += users.size();
                 }
-                groupUserMap.get(group).remove(user);
-                ans += groupUserMap.get(group).size();
+
+                break;
             }
-
         }
-        
-        for(Group group:groupMessageMap.keySet())
-        ans += groupMessageMap.get(group).size();
 
-        if(isPresent == false){
+        if(isPresent==false)
             throw new Exception("User not found");
+        else{
+            for(Message message:senderMap.keySet()){
+                if(senderMap.get(message).equals(user)){
+                    if(groupMessageMap.get(groupForUser).contains(message)){
+                        groupMessageMap.get(groupForUser).remove(message);
+                        ans += groupMessageMap.get(groupForUser).size();
+                    }
+                    senderMap.remove(message);
+                    ans += senderMap.size();
+                }
+            }
         }
         return ans;
     }
