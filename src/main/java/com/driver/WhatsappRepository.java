@@ -155,7 +155,7 @@ public class WhatsappRepository {
         else{
             List<User> updatedUser = new ArrayList<>();
             for(User groupUser:groupUserMap.get(groupForUser)){
-                if(groupUserMap.get(groupUser).equals(user)){
+                if(groupUser.equals(user)){
                     continue;
                 }
                 updatedUser.add(groupUser);
