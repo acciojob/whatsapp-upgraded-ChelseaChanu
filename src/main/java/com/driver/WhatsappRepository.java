@@ -137,20 +137,15 @@ public class WhatsappRepository {
         int ans = 0;
         boolean isPresent = false;
         Group groupForUser = null;
-        
+
         for(Group group: groupUserMap.keySet()){
             List<User> users = groupUserMap.get(group);
             if(users.contains(user)){
-                isPresent = true;
-                groupForUser = group;
                 if(adminMap.get(group).equals(user)){
                     throw new Exception("Cannot remove admin");
                 }
-                else{
-                    users.remove(user);
-                    ans += users.size();
-                }
-
+                isPresent = true;
+                groupForUser = group;
                 break;
             }
         }
@@ -158,16 +153,31 @@ public class WhatsappRepository {
         if(isPresent==false)
             throw new Exception("User not found");
         else{
-            for(Message message:senderMap.keySet()){
-                if(senderMap.get(message).equals(user)){
-                    if(groupMessageMap.get(groupForUser).contains(message)){
-                        groupMessageMap.get(groupForUser).remove(message);
-                        ans += groupMessageMap.get(groupForUser).size();
-                    }
-                    senderMap.remove(message);
-                    ans += senderMap.size();
+            List<User> updatedUser = new ArrayList<>();
+            for(User groupUser:groupUserMap.get(groupForUser)){
+                if(groupUserMap.get(groupUser).equals(user)){
+                    continue;
                 }
+                updatedUser.add(groupUser);
             }
+            groupUserMap.put(groupForUser, updatedUser);
+
+            List<Message> updatedMessage = new ArrayList<>();
+            for(Message message:groupMessageMap.get(groupForUser)){
+                if(senderMap.get(message).equals(user))
+                    continue;
+                updatedMessage.add(message);
+            }
+            groupMessageMap.put(groupForUser, updatedMessage);
+
+            HashMap<Message, User> updatedSenderMap = new HashMap<>();
+            for(Message message: senderMap.keySet()){
+                if(senderMap.get(message).equals(user))
+                    continue;
+                updatedSenderMap.put(message, senderMap.get(message));
+            }
+            senderMap = updatedSenderMap;
+            ans =  updatedUser.size()+updatedMessage.size()+updatedSenderMap.size();
         }
         return ans;
     }
